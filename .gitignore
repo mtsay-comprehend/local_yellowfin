@@ -1,6 +1,6 @@
 /yellowfin_installation
 /.idea
-/project
-/target
+/project/
+/target/
 /lib
 /yellowfin/yellowfin-*.jar
