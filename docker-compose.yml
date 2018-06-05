@@ -7,16 +7,15 @@ services:
     build:
       context: yellowfin/.
       args:
-        YELLOWFIN_VERSION: 20180226
+        YELLOWFIN_VERSION: ${YELLOWFIN_VERSION}
     ports:
-      - 7900:7900
+      - ${YELLOWFIN_EXTERNAL_PORT}:7900
     links:
       - postgres
     volumes:
       - ./yellowfin_installation:/applications/yellowfin:rw
-      - ./license:/license:ro
   postgres:
     container_name: postgres
-    image: postgres:9.4.4
+    image: postgres:${POSTGRES_VERSION}
     ports:
-      - 7800:5432
+      - ${POSTGRES_EXTERNAL_PORT}:5432
