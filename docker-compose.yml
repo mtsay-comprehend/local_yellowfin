@@ -7,24 +7,16 @@ services:
     build:
       context: yellowfin/.
       args:
-        YELLOWFIN_VERSION: 20170928
+        YELLOWFIN_VERSION: 20180226
     ports:
-      - "7900:7900"
-    depends_on:
-      - mysql
+      - 7900:7900
     links:
-      - mysql
+      - postgres
     volumes:
-      - ./yellowfin_installation:/application/yellowfin:rw
-  mysql:
-    container_name: mysql
-    image: mysql:latest
-    environment:
-      - MYSQL_ROOT_PASSWORD=password
-      - MYSQL_DATABASE=mysql
-      - MYSQL_USER=mysql
-      - MYSQL_PASSWORD=password
+      - ./yellowfin_installation:/applications/yellowfin:rw
+      - ./license:/license:ro
+  postgres:
+    container_name: postgres
+    image: postgres:9.4.4
     ports:
-      - "3306:3306"
-    volumes:
-      - ./mysql/mysqld.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf:ro
+      - 7800:5432

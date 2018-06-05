@@ -1,7 +1,5 @@
 FROM ubuntu:14.04
 
-ARG YELLOWFIN_VERSION
-
 RUN echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" \
   | tee "/etc/apt/sources.list.d/webupd8team-java.list" \
   && echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" \
@@ -14,6 +12,7 @@ RUN echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true
 
 WORKDIR /root
 
+ARG YELLOWFIN_VERSION
 ENV YELLOWFIN_JAR yellowfin-$YELLOWFIN_VERSION-full.jar
 
 COPY $YELLOWFIN_JAR .

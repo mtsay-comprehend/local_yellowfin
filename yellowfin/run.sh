@@ -1,5 +1,6 @@
 #!/bin/bash -e
-APPSERVER_DIR="/application/yellowfin/appserver"
+export INSTALL_PATH="/applications/yellowfin"
+APPSERVER_DIR="$INSTALL_PATH/appserver"
 
 if [ ! -d "$APPSERVER_DIR" ] ; then
   echo "Yellowfin installation not found!"
