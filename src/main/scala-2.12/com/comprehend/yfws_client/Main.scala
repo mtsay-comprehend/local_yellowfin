@@ -10,140 +10,124 @@ import com.typesafe.config.ConfigFactory
 import scala.language.postfixOps
 
 object Main {
-  implicit class NullCoalescer[T](val v: T) extends AnyVal {
-    def ??(defaultValue: T): T = { Option(v).getOrElse(defaultValue) }
-  }
-
   val client = YFWSClient.fromConfig(ConfigFactory.load())
 
-  val content1 = "0428.xml"
-  val content2 = "0504.xml"
+  val contentXml = "YFExport.xml"
+
+  val affectedReports = List(
+    "Queries by Current Status",
+    "Open Queries by Age",
+    "Open Query Rate: Site vs. Study Average",
+    "Query Resolution Summary",
+    "Query Average Resolution Cycle Time Rate: Site vs. Study Average",
+    "Open Query Rate Summary",
+    "Query Rate: Site vs. Study Average",
+    "Open Queries by Age Trend",
+    "Open Queries by Age Rate: Site vs. Study Average",
+    "Queries - Listing",
+    "Open Queries By Month - Listing",
+    "Query Rate Summary",
+    "Open Query - Listing",
+    "Open Queries by Age Summary",
+    "Open Queries - Listing",
+    "Closed Queries - Listing",
+    "Cancelled Queries - Listing",
+    "Query Rate by eCRF",
+    "Answered Queries - Listing"
+  )
 
   def main(args: Array[String]): Unit = {
-    moreCompareContent
+    importContentXml
   }
 
-  def moreCompareContent: Unit = {
+  def importContentXml: Unit = {
     val oldContent = client.call("GETCONTENT") {
       identity
     } getContentResources
 
-    val xmlContent = Array(getContent(content2))
+    val studyQueriesID = oldContent.find(_.getResourceName == "Study Queries")
+      .map(_.getResourceId)
+      .getOrElse(throw new IllegalStateException("Unable to find Study Queries view in Yellowfin."))
+
+    val importXml = getContent(contentXml)
 
     val newContent = client.call("GETIMPORTCONTENT") { req =>
-      req.setParameters(xmlContent)
+      req.setParameters(Array(importXml, "xml"))
       req
     } getContentResources
 
-    val importOptions = newContent.zipWithIndex flatMap { case (newResource, index) =>
+    val importOptions = (newContent map { newResource =>
       oldContent.find(_.getResourceUUID == newResource.getResourceUUID) match {
-        case Some(oldResource) if oldResource.getResourceType == "VIEW" =>
+        case _ if newResource.getResourceName == "Study Queries" =>
+          println(s"Skipping ${newResource.getResourceUUID} ${newResource.getResourceName}")
+
+          Map(
+            "SKIP" -> "True"
+          )
+        case Some(oldResource) =>
+          println(s"Replacing ${newResource.getResourceUUID} ${newResource.getResourceName}")
+
           Map(
             "SKIP" -> "False",
             "OPTION" -> "REPLACE",
-            "EXISTING" -> oldResource.getResourceId.toString
-          ) map {
-            case(key, value) =>
-              val importOption = new ImportOption
-              importOption.setItemIndex(index)
-              importOption.setOptionKey(key)
-              importOption.setOptionValue(value)
-              importOption
-          }
-        case Some(_) =>
-          Map(
-            "SKIP" -> "True"
-          ) map {
-            case(key, value) =>
-              val importOption = new ImportOption
-              importOption.setItemIndex(index)
-              importOption.setOptionKey(key)
-              importOption.setOptionValue(value)
-              importOption
+            "EXISTING" -> {
+              oldResource.getResourceType match {
+                case "RPTCATEGORY" | "RPTSUBCATEGORY" => oldResource.getResourceCode
+                case _ => oldResource.getResourceId.toString
+              }
+            }
+          ) ++ {
+            // also update the view to point at the existing Study Queries if the report is based on Study Queries
+            if (affectedReports.contains(newResource.getResourceName)) Some("VIEW" -> s"VIEW$studyQueriesID")
+            else None
           }
         case None =>
-          Array.empty[ImportOption]
+          println(s"Adding ${newResource.getResourceUUID} ${newResource.getResourceName}")
+          Map(
+            "SKIP" -> "False",
+            "OPTION" -> "ADD"
+          )
       }
+    } zipWithIndex) flatMap {
+      case (keyValues, index) =>
+        keyValues map { toImportOption(_, index) }
     }
 
-    val response = client.call("IMPORTCONTENT") { req =>
-      req.setParameters(xmlContent)
+    client.call("IMPORTCONTENT") { req =>
+      req.setParameters(Array(importXml, "xml"))
       req.setImportOptions(importOptions)
       req
     }
   }
 
-  def importOldContent: Unit = {
-    client.call("IMPORTCONTENT") { req =>
-      req.setParameters(Array(getContent(content1)))
-      req
-    }
+  def toImportOption(keyValue: (String, String), index: Int): ImportOption = {
+    val importOption = new ImportOption
+    importOption.setOptionKey(keyValue._1)
+    importOption.setOptionValue(keyValue._2)
+    importOption.setItemIndex(index)
+    importOption
   }
 
-  def compareContent: Unit = {
-    val oldContent = client.call("GETCONTENT") {
-      identity
-    } getContentResources
-
-    val newContent = client.call("GETIMPORTCONTENT") { req =>
-      req.setParameters(Array(getContent(content2)))
-      req
-    } getContentResources
-
-    val uuids = (oldContent ++ newContent).map(_.getResourceUUID ?? "null").toList.distinct.sorted
-
-    val fields: List[(String, ContentResource => Any)] = List(
-      ("ID", _.getResourceId),
-      ("Type", _.getResourceType),
-      ("Name", _.getResourceName),
-      ("Description", _.getResourceDescription),
-      ("OrgId", _.getResourceOrgId),
-      ("Code", _.getResourceCode)
-    )
-
-    uuids foreach { uuid =>
-      List(oldContent, newContent).map(_.find(_.getResourceUUID == uuid)) match {
-        case List(optOldResource, optNewResource) =>
-          if (optOldResource.isEmpty) print("> ")
-          else if (optNewResource.isEmpty) print("< ")
-          println(s"$uuid:")
-
-          fields foreach {
-            case (name, getValue) =>
-              val oldValue = optOldResource.map(getValue).flatMap(Option(_)).map(_.toString).getOrElse("")
-              val newValue = optNewResource.map(getValue).flatMap(Option(_)).map(_.toString).getOrElse("")
-
-              if (oldValue != newValue) println(s"  $name: $oldValue => $newValue")
-          }
-      }
-    }
-  }
+  val contentResourceFields: Map[String, ContentResource => Any] = Map(
+    ("UUID", _.getResourceUUID),
+    ("ID", _.getResourceId),
+    ("Type", _.getResourceType),
+    ("Name", _.getResourceName),
+    ("Description", _.getResourceDescription),
+    ("OrgId", _.getResourceOrgId),
+    ("Code", _.getResourceCode)
+  )
 
   def printToCSV(resource: ContentResource): Unit = {
-    val fields: List[ContentResource => Any] = List(
-      _.getResourceUUID,
-      _.getResourceId,
-      _.getResourceType,
-      _.getResourceName,
-      _.getResourceDescription,
-      _.getResourceOrgId,
-      _.getResourceCode
-    )
-
-    println(fields map { _ apply resource } mkString ",")
+    println(contentResourceFields.keys mkString ",")
+    println(contentResourceFields.values map { _ apply resource } mkString ",")
   }
 
   def printContentResource(resource: ContentResource): Unit = {
-    print(
-      s"""
-         |ID: ${resource.getResourceId}
-         |UUID: ${resource.getResourceUUID}
-         |Type: ${resource.getResourceType}
-         |Name: ${resource.getResourceName}
-         |Description: ${resource.getResourceDescription}
-         |OrgId: ${resource.getResourceOrgId}
-         |Code: ${resource.getResourceCode}
-        """.stripMargin)
+    contentResourceFields foreach {
+      case (fieldName, fieldAccessor) =>
+        println(s"$fieldName: ${fieldAccessor apply resource}")
+    }
   }
 
   def getContent(filename: String): String = {
