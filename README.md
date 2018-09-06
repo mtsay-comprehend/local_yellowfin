@@ -17,6 +17,8 @@ This repo contains:
 - edit `.env` and update `YELLOWFIN_VERSION` to match the Yellowfin version of
   the installation jar.
 - run `docker-compose up -d`.
+- wait about 5 minutes, then you can begin using your local Yellowfin instance
+  by visiting `http://localhost:7900` in a web browser.
 
 ## How to run Yellowfin Web Services client
 
