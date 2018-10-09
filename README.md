@@ -13,7 +13,7 @@ This repo contains:
 
 ## How to run a local Yellowfin Instance
 
-- [download](1) a Yellowfin installation jar and place it inside `yellowfin` folder.
+- [download][1] a Yellowfin installation jar and place it inside `yellowfin` folder.
   For YF version look at https://analytics-nightly.comprehend.com/info.jsp for
   "Current Code Version:" property.
 - edit `.env` and update `YELLOWFIN_VERSION` to match the Yellowfin version of
@@ -22,8 +22,8 @@ This repo contains:
 - wait about 5 minutes, then you can begin using your local Yellowfin instance
   by visiting [http://localhost:7900](http://localhost:7900) in a web browser
   (login page will open in 5-10 seconds).
-- Login by [open admin credentials](2),
-  register your YF by license key (lic file) from [Engineering hub](3).
+- Login by [open admin credentials][2],
+  register your YF by license key (lic file) from [Engineering hub][3].
 
 ## How to run Yellowfin Web Services client
 
