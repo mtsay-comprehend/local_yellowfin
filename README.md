@@ -13,12 +13,17 @@ This repo contains:
 
 ## How to run a local Yellowfin Instance
 
-- download a Yellowfin installation jar and place it inside `yellowfin` folder.
+- [download](1) a Yellowfin installation jar and place it inside `yellowfin` folder.
+  For YF version look at https://analytics-nightly.comprehend.com/info.jsp for
+  "Current Code Version:" property.
 - edit `.env` and update `YELLOWFIN_VERSION` to match the Yellowfin version of
   the installation jar.
 - run `docker-compose up -d`.
 - wait about 5 minutes, then you can begin using your local Yellowfin instance
-  by visiting `http://localhost:7900` in a web browser.
+  by visiting [http://localhost:7900](http://localhost:7900) in a web browser
+  (login page will open in 5-10 seconds).
+- Login by [open admin credentials](2),
+  register your YF by license key (lic file) from [Engineering hub](3).
 
 ## How to run Yellowfin Web Services client
 
@@ -42,3 +47,7 @@ This repo contains:
   changed by editing `YELLOWFIN_EXTERNAL_PORT` in `.env`.
 - Postgres will be listening on port 7800 on the host by default; this can be
   changed by editing `POSTGRES_EXTERNAL_PORT` in `.env`.
+
+[1][http://hdfs-nn.comprehend.com:50070/explorer.html#/binaries/YellowFin]
+[2][https://wiki.yellowfinbi.com/display/USER74/Logging+In]
+[3][https://drive.google.com/drive/folders/19B501Y2yizdyIPj5JO8-YylJ5TAKl8Lg]
