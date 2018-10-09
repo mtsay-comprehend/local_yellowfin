@@ -47,6 +47,8 @@ This repo contains:
   changed by editing `YELLOWFIN_EXTERNAL_PORT` in `.env`.
 - Postgres will be listening on port 7800 on the host by default; this can be
   changed by editing `POSTGRES_EXTERNAL_PORT` in `.env`.
+- Logs are stored at `yellowfin_installation/appserver/logs/` folder in repo. Inside docker
+  container there are not logs.
 
 [1]:http://hdfs-nn.comprehend.com:50070/explorer.html#/binaries/YellowFin
 [2]:https://wiki.yellowfinbi.com/display/USER74/Logging+In
