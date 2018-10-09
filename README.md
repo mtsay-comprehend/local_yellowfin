@@ -48,6 +48,6 @@ This repo contains:
 - Postgres will be listening on port 7800 on the host by default; this can be
   changed by editing `POSTGRES_EXTERNAL_PORT` in `.env`.
 
-[1][http://hdfs-nn.comprehend.com:50070/explorer.html#/binaries/YellowFin]
-[2][https://wiki.yellowfinbi.com/display/USER74/Logging+In]
-[3][https://drive.google.com/drive/folders/19B501Y2yizdyIPj5JO8-YylJ5TAKl8Lg]
+[1]:http://hdfs-nn.comprehend.com:50070/explorer.html#/binaries/YellowFin
+[2]:https://wiki.yellowfinbi.com/display/USER74/Logging+In
+[3]:https://drive.google.com/drive/folders/19B501Y2yizdyIPj5JO8-YylJ5TAKl8Lg
